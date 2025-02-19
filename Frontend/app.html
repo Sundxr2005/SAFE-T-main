@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community App</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="app.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="content">
+        <!-- Welcome Message -->
+        <div id="welcomeContainer" class="fade-in">
+            <h1>Welcome, <span id="usernameDisplay"></span>!</h1>
+            <p>Join your community and stay connected.</p>
+        </div>
+
+        <!-- Map Section -->
+        <div id="mapContainer" class="hidden slide-in">
+            <div id="map"></div>
+        </div>
+
+        <!-- Chat Section -->
+        <div id="chatContainer" class="hidden slide-in">
+            <div class="chat-box" id="chatBox"></div>
+            <div class="chat-input">
+                <input type="text" id="messageInput" placeholder="Type your message...">
+                <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div id="featuresContainer" class="hidden slide-in">
+            <h2>Community Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-users"></i>
+                    <h3>Meet Neighbors</h3>
+                    <p>Connect with people in your area.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>Events</h3>
+                    <p>Join local events and activities.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-hand-holding-heart"></i>
+                    <h3>Support</h3>
+                    <p>Get or offer help in your community.</p>
+                </div>
+            </div>
+        </div>
+
+<!-- Profile Section -->
+<div id="profileContainer" class="hidden slide-in">
+    <div class="profile">
+        <img id="profilePic" src="https://via.placeholder.com/150" alt="Profile Picture" onclick="updateProfilePicture()">
+        <h2 id="profileName">John Doe</h2>
+        <p id="profileEmail">johndoe@example.com</p>
+        <p id="profileSince">Member since <span id="profileSinceDate">2023</span></p>
+        <div class="profile-stats">
+            <div><i class="fas fa-comments"></i> <span id="profileChats">0</span> Chats</div>
+            <div><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">Unknown</span></div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Voice Toggle Button -->
+    <button id="voiceToggle" class="voice-button">
+        <i class="fas fa-volume-up"></i>
+    </button>
+
+    <nav class="navbar">
+        <button class="button" onclick="showSection('map')"><i class="fas fa-map-marked-alt"></i><span>Map</span></button>
+        <button class="button" onclick="showSection('chat')"><i class="fas fa-comments"></i><span>Chat</span></button>
+        <button class="button" onclick="showSection('features')"><i class="fas fa-star"></i><span>Features</span></button>
+        <button class="button" onclick="showSection('profile')"><i class="fas fa-user"></i><span>Profile</span></button>
+    </nav>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
