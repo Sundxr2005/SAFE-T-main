@@ -63,7 +63,7 @@ function showSection(section) {
             if (isVoiceEnabled) speakMessage("Here are the community features.");
             break;
         case "profile":
-            showProfile(); // Load profile dynamically
+            showProfile();
             document.getElementById("profileContainer").classList.remove("hidden");
             if (isVoiceEnabled) speakMessage("This is your profile section.");
             break;
@@ -81,18 +81,17 @@ function showProfile() {
     document.getElementById("profileSinceDate").textContent = user.joined_date || "N/A";
     document.getElementById("profileLocation").textContent = user.location || "Unknown";
 
-    // Set profile picture (default if not available)
     const profilePic = document.getElementById("profilePic");
     profilePic.src = user.profile_picture || "https://via.placeholder.com/150";
 }
 
-// ✅ Update profile picture on click
+// ✅ Update profile picture
 function updateProfilePicture() {
     const newPicUrl = prompt("Enter the URL of your new profile picture:");
     if (newPicUrl) {
         user.profile_picture = newPicUrl;
-        localStorage.setItem("user", JSON.stringify(user)); // Update localStorage
-        showProfile(); // Refresh profile section
+        localStorage.setItem("user", JSON.stringify(user));
+        showProfile();
     }
 }
 
@@ -111,25 +110,20 @@ function initMap() {
     }
 }
 
-// ✅ Fetch Messages with Authorization
+// ✅ Fetch messages and order them correctly
 function fetchMessages() {
     fetch("http://127.0.0.1:5000/messages", {
         headers: { "Authorization": localStorage.getItem("token") }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        chatMessages = data;
+        chatMessages = data.reverse(); // Oldest messages first
         updateChat();
     })
     .catch(error => console.error("Error fetching messages:", error));
 }
 
-// ✅ Send Message with Authorization
+// ✅ Send message with authorization
 function sendMessage() {
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
@@ -146,26 +140,57 @@ function sendMessage() {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
-            "Authorization": localStorage.getItem("token") // Send JWT token
+            "Authorization": localStorage.getItem("token")
         },
-        body: JSON.stringify({ message }) // Remove user_id (backend gets it from JWT)
+        body: JSON.stringify({ message })
     })
     .then(response => response.json())
     .then(data => {
         input.value = "";
-        fetchMessages(); // Refresh chat
+        fetchMessages();
     })
     .catch(error => console.error("Error sending message:", error));
 }
 
-// ✅ Update chat messages
+// ✅ Update chat UI and include timestamps
 function updateChat() {
     const chatBox = document.getElementById('chatBox');
-    chatBox.innerHTML = chatMessages.map(msg => {
+    chatBox.innerHTML = ""; // Clear previous messages
+
+    chatMessages.forEach(msg => {
         const messageClass = msg.user_id === user.id ? "sent" : "received";
-        return `<div class="chat-message ${messageClass}"><strong>${msg.full_name}:</strong> ${msg.message}</div>`;
-    }).join('');
+        const timeAgo = timeSince(new Date(msg.created_at)); // ✅ Convert timestamp
+
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("chat-message", messageClass);
+        messageElement.innerHTML = `
+            <strong>${msg.full_name}:</strong> ${msg.message}
+            <div class="timestamp">${timeAgo}</div> <!-- ✅ Display timestamp -->
+        `;
+
+        chatBox.appendChild(messageElement);
+    });
+
+    // ✅ Auto-scroll to the latest message
     chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ✅ Convert timestamp to "X minutes ago"
+function timeSince(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    let interval = Math.floor(seconds / 31536000);
+
+    if (interval > 1) return `${interval} years ago`;
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) return `${interval} months ago`;
+    interval = Math.floor(seconds / 86400);
+    if (interval > 1) return `${interval} days ago`;
+    interval = Math.floor(seconds / 3600);
+    if (interval > 1) return `${interval} hours ago`;
+    interval = Math.floor(seconds / 60);
+    if (interval > 1) return `${interval} minutes ago`;
+    
+    return "Just now";
 }
 
 // ✅ Store user data on login
@@ -182,8 +207,8 @@ async function login() {
 
         const data = await response.json();
         if (response.ok) {
-            localStorage.setItem("token", data.token); // Store JWT token
-            localStorage.setItem("user", JSON.stringify(data.user)); // Store user object
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
             alert("Login successful!");
             window.location.reload();
         } else {
