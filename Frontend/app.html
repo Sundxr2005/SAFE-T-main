@@ -29,6 +29,14 @@
                 <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
+        <div id="cameraContainer" class="hidden">
+            <video id="cameraFeed" autoplay></video>
+            <div class="camera-buttons">
+                <button onclick="captureImage()"><i class="fas fa-camera"></i> Capture</button>
+                <button onclick="closeCamera()"><i class="fas fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
 
         <!-- Features Section -->
         <div id="featuresContainer" class="hidden slide-in">
@@ -71,7 +79,10 @@
     <button id="voiceToggle" class="voice-button">
         <i class="fas fa-volume-up"></i>
     </button>
-
+    <!-- SOS Button -->
+    <button id="sosButton" class="sos-button" onclick="sendSOSMessage()">
+        <i class="fas fa-exclamation-triangle"></i> SOS
+    </button>
     <nav class="navbar">
         <button class="button" onclick="showSection('map')"><i class="fas fa-map-marked-alt"></i><span>Map</span></button>
         <button class="button" onclick="showSection('chat')"><i class="fas fa-comments"></i><span>Chat</span></button>

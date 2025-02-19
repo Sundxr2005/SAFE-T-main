@@ -43,6 +43,47 @@ function speakMessage(message) {
         synth.speak(utterance);
     }
 }
+async function sendSOSMessage() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            try {
+                // Fetch location name
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                const data = await response.json();
+                const locationName = data.display_name || `Lat: ${latitude}, Lng: ${longitude}`;
+
+                const message = {
+                    sender: user.full_name, // ✅ Fix: Use user.full_name instead of username
+                    text: `🚨 SOS! Emergency at: ${locationName}`,
+                    timestamp: new Date().toLocaleTimeString(),
+                };
+
+                // ✅ Fix: Use chatMessages array instead of getChatMessages()
+                chatMessages.push(message);
+                saveChatMessages(chatMessages);
+
+                // Update chat UI
+                updateChat();
+
+                // Speak the message if voice is enabled
+                if (isVoiceEnabled) {
+                    speakMessage(`Emergency alert sent by ${message.sender} at ${locationName}.`);
+                }
+            } catch (error) {
+                console.error("Error fetching location name:", error);
+                alert("Failed to get the exact location name. Sending location coordinates instead.");
+            }
+        }, () => {
+            alert('Unable to retrieve location. Please check your settings.');
+        });
+    } else {
+        alert('Geolocation is not supported by your browser.');
+    }
+}
+
 
 function showSection(section) {
     document.querySelectorAll(".content > div").forEach((div) => {
@@ -72,7 +113,6 @@ function showSection(section) {
     }
 }
 
-// ✅ Display user profile
 function showProfile() {
     if (!user) return;
 
@@ -82,7 +122,10 @@ function showProfile() {
     document.getElementById("profileLocation").textContent = user.location || "Unknown";
 
     const profilePic = document.getElementById("profilePic");
-    profilePic.src = user.profile_picture || "https://via.placeholder.com/150";
+    
+    // Use a valid placeholder image if the user's picture is missing
+    const defaultPic = "https://www.w3schools.com/howto/img_avatar.png"; 
+    profilePic.src = user.profile_picture && user.profile_picture.trim() ? user.profile_picture : defaultPic;
 }
 
 // ✅ Update profile picture
@@ -217,4 +260,57 @@ async function login() {
     } catch (error) {
         console.error("Error logging in:", error);
     }
+}
+function openCamera() {
+    const cameraContainer = document.getElementById("cameraContainer");
+    const video = document.getElementById("cameraFeed");
+
+    cameraContainer.classList.remove("hidden");
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+            video.srcObject = stream;
+        })
+        .catch((err) => {
+            console.error("Camera access denied:", err);
+            alert("Please allow camera access.");
+        });
+}
+
+function closeCamera() {
+    const video = document.getElementById("cameraFeed");
+
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+    }
+
+    document.getElementById("cameraContainer").classList.add("hidden");
+}
+
+function captureImage() {
+    const video = document.getElementById("cameraFeed");
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageDataUrl = canvas.toDataURL("image/png");
+
+    closeCamera();
+
+    sendImageToChat(imageDataUrl);
+}
+
+function sendImageToChat(imageUrl) {
+    const messageData = { 
+        sender: username, 
+        type: "image", 
+        content: imageUrl, 
+        timestamp: new Date().toLocaleTimeString() 
+    };
+    const messages = getChatMessages();
+    messages.push(messageData);
+    saveChatMessages(messages);
+    updateChat();
 }
